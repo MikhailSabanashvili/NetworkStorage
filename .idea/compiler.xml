@@ -6,11 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="NetworkStorage" />
+        <module name="cloud-server" />
+        <module name="cloud-application" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="NetworkStorage" target="16" />
-    </bytecodeTargetLevel>
   </component>
 </project>
