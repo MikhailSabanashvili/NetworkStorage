@@ -1,5 +1,9 @@
 package com.geekbrains.cloud.june.cloudapplication;
 
+import com.geekbrains.cloud.CloudMessage;
+import com.geekbrains.cloud.FileMessage;
+import com.geekbrains.cloud.FileRequest;
+import com.geekbrains.cloud.ListFiles;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -13,9 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class ChatController implements Initializable {
 
@@ -28,24 +30,32 @@ public class ChatController implements Initializable {
 
     private Network network;
     private String homeDir;
+    private String root_dir;
 
-    private void dragAndDrop() {
+    private void dragAndDropClientServer() {
+        dragAndDrop(clientView, serverView);
+    }
 
-        clientView.setOnDragDetected(new EventHandler<MouseEvent>() {
+    private void dragAndDropServerClient() {
+        dragAndDrop(serverView, clientView);
+    }
+
+    private void dragAndDrop(ListView<String> listView1, ListView<String> listView2) {
+        listView1.setOnDragDetected(new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
-                Dragboard db = clientView.startDragAndDrop(TransferMode.ANY);
+                Dragboard db = listView1.startDragAndDrop(TransferMode.ANY);
 
                 ClipboardContent content = new ClipboardContent();
-                content.putString(clientView.getSelectionModel().getSelectedItem());
+                content.putString(listView1.getSelectionModel().getSelectedItem());
                 db.setContent(content);
 
                 event.consume();
             }
         });
 
-        serverView.setOnDragOver(new EventHandler<DragEvent>() {
+        listView2.setOnDragOver(new EventHandler<DragEvent>() {
             public void handle(DragEvent event) {
-                if (event.getGestureSource() != serverView) {
+                if (event.getGestureSource() != listView2) {
                     event.acceptTransferModes(TransferMode.ANY);
                 }
 
@@ -53,14 +63,18 @@ public class ChatController implements Initializable {
             }
         });
 
-        serverView.setOnDragDropped(new EventHandler() {
+        listView2.setOnDragDropped(new EventHandler() {
             @Override
             public void handle(Event event) {
                 DragEvent dragEvent = (DragEvent) event;
                 Dragboard db = dragEvent.getDragboard();
                 boolean success = false;
                 if (db.hasString()) {
-                    transferFile(db.getString());
+                    if (listView1.equals(serverView)) {
+                        transferFrom(serverView.getSelectionModel().getSelectedItem());
+                    } else {
+                        transferTo(clientView.getSelectionModel().getSelectedItem());
+                    }
                     success = true;
                 }
                 dragEvent.setDropCompleted(success);
@@ -69,44 +83,123 @@ public class ChatController implements Initializable {
         });
     }
 
-    private void transferFile(String fileName) {
+    private void transferTo(String file) {
         try {
-            File file = new File(homeDir + "/" + fileName);
-            network.getOs().writeUTF("#file#");
-            network.getOs().writeUTF(fileName);
-            network.getOs().writeLong(file.length());
-            network.getOs().write(Files.readAllBytes(Path.of(homeDir + "/" + fileName)));
-            network.getOs().flush();
+            network.write(new FileMessage(Path.of(homeDir).resolve(file)));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
     }
 
-    private void readLoop() {
+    private void transferFrom(String file) {
         try {
-            while (true) {
-                dragAndDrop();
-                String command = network.readString();
-                if (command.equals("#list#")) {
-                    Platform.runLater(() -> serverView.getItems().clear());
-                    int len = network.readInt();
-                    for (int i = 0; i < len; i++) {
-                        String file = network.readString();
-                        Platform.runLater(() -> serverView.getItems().add(file));
+            network.write(new FileRequest(false, file));
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    private void isClickedOnClient() {
+        isClicked(clientView, false);
+    }
+
+    private void isClickedOnServer() {
+        isClicked(serverView, true);
+    }
+
+    private void isClicked(ListView<String> listView, boolean isServer) {
+        listView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if(mouseEvent.getClickCount() == 2){
+                        String fileName = listView.getSelectionModel().getSelectedItem();
+                        if(fileName.equals("..")) {
+                            listView.getItems().clear();
+                            if(isServer) {
+                                try {
+                                    network.write(new FileRequest(true,".."));
+                                    return;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            char[] arr = homeDir.toCharArray();
+                            for (int i = arr.length - 1; i >= 0; i--) {
+                                if(arr[i] == '\\') {
+                                    arr[i] = '!';
+                                    break;
+                                }
+
+                                arr[i] = '_';
+                            }
+
+                            homeDir = String.valueOf(arr).split("!")[0];
+                            listView.getItems().addAll(getFiles(homeDir, root_dir.equals(homeDir)));
+                            return;
+                        }
+                        if(isServer) {
+                            try {
+                                FileRequest fileRequest = new FileRequest(true, fileName);
+                                network.write(fileRequest);
+                                return;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        File dir = new File(homeDir);
+                        File[] arrFiles = dir.listFiles();
+                        assert arrFiles != null;
+                        Optional<File> lst = Arrays.stream(arrFiles)
+                                .filter(x -> x.getName().equals(fileName)).findFirst();
+                        if(lst.isPresent() && lst.get().isDirectory()) {
+                            listView.getItems().clear();
+                            homeDir = String.valueOf(Path.of(homeDir).resolve(lst.get().getName()));
+                            listView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
+
+                        }
                     }
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Connection lost");
+        });
+    }
+
+    private void readLoop() {
+        try {
+            while (true) {
+                dragAndDropClientServer();
+                dragAndDropServerClient();
+                isClickedOnClient();
+                isClickedOnServer();
+                CloudMessage message = network.read();
+                if (message instanceof ListFiles listFiles) {
+                    Platform.runLater(() -> {
+                        serverView.getItems().clear();
+                        serverView.getItems().addAll(listFiles.getFiles());
+                    });
+                } else if (message instanceof FileMessage fileMessage) {
+                    Path current = Path.of(homeDir).resolve(fileMessage.getName());
+                    Files.write(current, fileMessage.getData());
+                    Platform.runLater(() -> {
+                        clientView.getItems().clear();
+                        clientView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
+                    });
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
+
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            homeDir = System.getProperty("user.home");
+            homeDir = "client_files";
+            root_dir = homeDir;
             clientView.getItems().clear();
-            clientView.getItems().addAll(getFiles(homeDir));
+            clientView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
             network = new Network(8189);
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
@@ -117,8 +210,19 @@ public class ChatController implements Initializable {
         }
     }
 
-    private List<String> getFiles(String dir) {
-        String[] list = new File(dir).list();
+    private List<String> getFiles(String dir, boolean isRootDir) {
+        String[] list;
+        if(!isRootDir) {
+            String[] fileList = new File(dir).list();
+            assert fileList != null;
+            list = new String[fileList.length + 1];
+            list[0] = "..";
+            for (int i = 1, j = 0; i < list.length; i++, j++) {
+                list[i] = fileList[j];
+            }
+            return Arrays.asList(list);
+        }
+        list = new File(dir).list();
         assert list != null;
         return Arrays.asList(list);
     }
