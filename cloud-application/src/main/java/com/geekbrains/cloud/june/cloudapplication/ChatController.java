@@ -1,9 +1,6 @@
 package com.geekbrains.cloud.june.cloudapplication;
 
-import com.geekbrains.cloud.CloudMessage;
-import com.geekbrains.cloud.FileMessage;
-import com.geekbrains.cloud.FileRequest;
-import com.geekbrains.cloud.ListFiles;
+import com.geekbrains.cloud.*;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -42,16 +39,14 @@ public class ChatController implements Initializable {
     }
 
     private void dragAndDrop(ListView<String> listView1, ListView<String> listView2) {
-        listView1.setOnDragDetected(new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent event) {
-                Dragboard db = listView1.startDragAndDrop(TransferMode.ANY);
+        listView1.setOnDragDetected(event -> {
+            Dragboard db = listView1.startDragAndDrop(TransferMode.ANY);
 
-                ClipboardContent content = new ClipboardContent();
-                content.putString(listView1.getSelectionModel().getSelectedItem());
-                db.setContent(content);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(listView1.getSelectionModel().getSelectedItem());
+            db.setContent(content);
 
-                event.consume();
-            }
+            event.consume();
         });
 
         listView2.setOnDragOver(new EventHandler<DragEvent>() {
@@ -119,7 +114,7 @@ public class ChatController implements Initializable {
                             listView.getItems().clear();
                             if(isServer) {
                                 try {
-                                    network.write(new FileRequest(true,".."));
+                                    network.write(new PathUpRequest(".."));
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -132,8 +127,7 @@ public class ChatController implements Initializable {
                         }
                         if(isServer) {
                             try {
-                                FileRequest fileRequest = new FileRequest(true, fileName);
-                                network.write(fileRequest);
+                                network.write(new PathInRequest(fileName));
                                 return;
                             } catch (IOException e) {
                                 e.printStackTrace();
