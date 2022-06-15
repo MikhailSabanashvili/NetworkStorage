@@ -1,9 +1,6 @@
 package com.geekbrains.cloud.june.cloudapplication;
 
-import com.geekbrains.cloud.CloudMessage;
-import com.geekbrains.cloud.FileMessage;
-import com.geekbrains.cloud.FileRequest;
-import com.geekbrains.cloud.ListFiles;
+import com.geekbrains.cloud.*;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -18,6 +15,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ChatController implements Initializable {
 
@@ -29,8 +27,8 @@ public class ChatController implements Initializable {
     ListView<String> serverView;
 
     private Network network;
-    private String homeDir;
-    private String root_dir;
+    private Path currentDir;
+    private Path rootDir;
 
     private void dragAndDropClientServer() {
         dragAndDrop(clientView, serverView);
@@ -41,16 +39,14 @@ public class ChatController implements Initializable {
     }
 
     private void dragAndDrop(ListView<String> listView1, ListView<String> listView2) {
-        listView1.setOnDragDetected(new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent event) {
-                Dragboard db = listView1.startDragAndDrop(TransferMode.ANY);
+        listView1.setOnDragDetected(event -> {
+            Dragboard db = listView1.startDragAndDrop(TransferMode.ANY);
 
-                ClipboardContent content = new ClipboardContent();
-                content.putString(listView1.getSelectionModel().getSelectedItem());
-                db.setContent(content);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(listView1.getSelectionModel().getSelectedItem());
+            db.setContent(content);
 
-                event.consume();
-            }
+            event.consume();
         });
 
         listView2.setOnDragOver(new EventHandler<DragEvent>() {
@@ -85,7 +81,7 @@ public class ChatController implements Initializable {
 
     private void transferTo(String file) {
         try {
-            network.write(new FileMessage(Path.of(homeDir).resolve(file)));
+            network.write(new FileMessage(currentDir.resolve(file)));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -118,46 +114,29 @@ public class ChatController implements Initializable {
                             listView.getItems().clear();
                             if(isServer) {
                                 try {
-                                    network.write(new FileRequest(true,".."));
+                                    network.write(new PathUpRequest(".."));
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             }
-                            char[] arr = homeDir.toCharArray();
-                            for (int i = arr.length - 1; i >= 0; i--) {
-                                if(arr[i] == '\\') {
-                                    arr[i] = '!';
-                                    break;
-                                }
+                            currentDir = currentDir.getParent();
 
-                                arr[i] = '_';
-                            }
-
-                            homeDir = String.valueOf(arr).split("!")[0];
-                            listView.getItems().addAll(getFiles(homeDir, root_dir.equals(homeDir)));
+                            listView.getItems().addAll(getFiles(currentDir, rootDir.equals(currentDir)));
                             return;
                         }
                         if(isServer) {
                             try {
-                                FileRequest fileRequest = new FileRequest(true, fileName);
-                                network.write(fileRequest);
+                                network.write(new PathInRequest(fileName));
                                 return;
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }
-                        File dir = new File(homeDir);
-                        File[] arrFiles = dir.listFiles();
-                        assert arrFiles != null;
-                        Optional<File> lst = Arrays.stream(arrFiles)
-                                .filter(x -> x.getName().equals(fileName)).findFirst();
-                        if(lst.isPresent() && lst.get().isDirectory()) {
-                            listView.getItems().clear();
-                            homeDir = String.valueOf(Path.of(homeDir).resolve(lst.get().getName()));
-                            listView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
 
-                        }
+                        listView.getItems().clear();
+                        currentDir = currentDir.resolve(fileName);
+                        listView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                     }
                 }
             }
@@ -178,11 +157,11 @@ public class ChatController implements Initializable {
                         serverView.getItems().addAll(listFiles.getFiles());
                     });
                 } else if (message instanceof FileMessage fileMessage) {
-                    Path current = Path.of(homeDir).resolve(fileMessage.getName());
+                    Path current = currentDir.resolve(fileMessage.getName());
                     Files.write(current, fileMessage.getData());
                     Platform.runLater(() -> {
                         clientView.getItems().clear();
-                        clientView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
+                        clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                     });
                 }
             }
@@ -196,10 +175,10 @@ public class ChatController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            homeDir = "client_files";
-            root_dir = homeDir;
+            currentDir = Path.of("client_files");
+            rootDir = currentDir;
             clientView.getItems().clear();
-            clientView.getItems().addAll(getFiles(homeDir, homeDir.equals(root_dir)));
+            clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
             network = new Network(8189);
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
@@ -210,20 +189,30 @@ public class ChatController implements Initializable {
         }
     }
 
-    private List<String> getFiles(String dir, boolean isRootDir) {
-        String[] list;
+    private List<String> getFiles(Path dir, boolean isRootDir) {
+        List<String> files;
         if(!isRootDir) {
-            String[] fileList = new File(dir).list();
-            assert fileList != null;
-            list = new String[fileList.length + 1];
-            list[0] = "..";
-            for (int i = 1, j = 0; i < list.length; i++, j++) {
-                list[i] = fileList[j];
+            try {
+                files = getListFiles(dir);
+                files.add(0, "..");
+                return files;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            return Arrays.asList(list);
         }
-        list = new File(dir).list();
-        assert list != null;
-        return Arrays.asList(list);
+
+        try {
+            return getListFiles(dir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("An error was occured");
+    }
+
+    private List<String> getListFiles(Path dir) throws IOException {
+        return Files.list(dir)
+                .map(p -> p.getFileName().toString())
+                .collect(Collectors.toList());
     }
 }
