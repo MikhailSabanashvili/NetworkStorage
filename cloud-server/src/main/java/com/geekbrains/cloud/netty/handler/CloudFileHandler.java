@@ -50,18 +50,10 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
                     ctx.writeAndFlush(list);
                     return;
                 }
-                ListFiles listFiles = new ListFiles(currentDir);
-                List<String> arrFiles = listFiles.getFiles();
-                Optional<String> lst = arrFiles.stream()
-                        .filter(x -> x.equals(fileName)).findFirst();
-
-                if(lst.isPresent() && new File(String.valueOf(currentDir.resolve(lst.get()))).isDirectory()) {
-                    currentDir = currentDir.resolve(Path.of(lst.get()));
-                    ListFiles list = new ListFiles(currentDir);
-                    list.getFiles().add(0, "..");
-                    ctx.writeAndFlush(list);
-                    return;
-                }
+                currentDir = currentDir.resolve(Path.of(fileName));
+                ListFiles list = new ListFiles(currentDir);
+                list.getFiles().add(0, "..");
+                ctx.writeAndFlush(list);
                 return;
             }
             ctx.writeAndFlush(new FileMessage(currentDir.resolve(fileRequest.getName())));
