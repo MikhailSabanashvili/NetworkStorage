@@ -16,6 +16,7 @@
       <module name="cloud-application" target="17" />
       <module name="cloud-model" target="17" />
       <module name="cloud-server" target="17" />
+      <module name="geek-cloud" target="17" />
       <module name="NetworkStorage" target="17" />
     </bytecodeTargetLevel>
   </component>
