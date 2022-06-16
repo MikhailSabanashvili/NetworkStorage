@@ -1,6 +1,8 @@
 package com.geekbrains.cloud.netty.handler;
 
 import com.geekbrains.cloud.*;
+import com.geekbrains.cloud.netty.dao.User;
+import com.geekbrains.cloud.netty.service.UserService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -12,10 +14,12 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
 
     private Path currentDir;
     private Path rootDir;
+    private UserService userService;
 
     public CloudFileHandler() {
         currentDir = Path.of("server_files");
         rootDir = currentDir;
+        userService = new UserService();
     }
 
     @Override
@@ -60,6 +64,13 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
             if(!currentDir.equals(rootDir))
                 list.getFiles().add(0, "..");
             ctx.writeAndFlush(list);
+        } else if(cloudMessage instanceof AuthorizeRequest request) {
+            User user = new User(request.getLogin(),request.getPassword(), request.getFirstName(),
+                    request.getSecondName(), request.getEmail());
+            userService.authorize(user);
+        } else if(cloudMessage instanceof AuthRequest request) {
+            if(!userService.isAuth(request.getLogin(), request.getPassword()))
+                ctx.writeAndFlush("Please, authorize");
         }
 
     }
