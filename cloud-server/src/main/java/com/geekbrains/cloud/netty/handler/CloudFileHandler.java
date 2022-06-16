@@ -70,11 +70,13 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
             userService.authorize(user);
             if(userService.isAuth(user.getLogin(), user.getPassword()))
                 ctx.writeAndFlush(new AuthResponse(true));
-            ctx.writeAndFlush(new AuthResponse(false));
+            else
+                ctx.writeAndFlush(new AuthResponse(false));
         } else if(cloudMessage instanceof AuthRequest request) {
             if(userService.isAuth(request.getLogin(), request.getPassword()))
                 ctx.writeAndFlush(new AuthorizeResponse(true));
-            ctx.writeAndFlush(new AuthorizeResponse(false));
+            else
+                ctx.writeAndFlush(new AuthorizeResponse(false));
         }
 
     }
