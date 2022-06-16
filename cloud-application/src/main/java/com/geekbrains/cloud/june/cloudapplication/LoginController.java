@@ -3,7 +3,9 @@ package com.geekbrains.cloud.june.cloudapplication;
 import com.geekbrains.cloud.*;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -54,8 +56,6 @@ public class LoginController implements Initializable {
         }
     }
 
-
-
     private void readLoop() {
         try {
             while (true) {
@@ -64,19 +64,21 @@ public class LoginController implements Initializable {
                     if(!response.isAuth())
                         error.setText("You are not registered. Please, log in");
                     else {
-                        ChatApplication.isEntered = true;
                         break;
                     }
                 } else if(message instanceof AuthorizeResponse response) {
                     if(!response.isSuccess())
                         error.setText("Something went wrong. Please, log in again");
                     else {
-                        ChatApplication.isEntered = true;
                         break;
                     }
                 }
 
             }
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("file_list.fxml"));
+            Parent root = fxmlLoader.load();
+            ChatApplication.scene.setRoot(root);
+            ChatApplication.stage.close();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
