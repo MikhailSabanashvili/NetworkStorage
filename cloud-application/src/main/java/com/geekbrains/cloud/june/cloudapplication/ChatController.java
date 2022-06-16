@@ -2,14 +2,16 @@ package com.geekbrains.cloud.june.cloudapplication;
 
 import com.geekbrains.cloud.*;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -29,6 +31,10 @@ public class ChatController implements Initializable {
     private Network network;
     private Path currentDir;
     private Path rootDir;
+    private ContextMenu contextMenuClient;
+    private ContextMenu contextMenuServer;
+    private MenuItem itemDeleteClient;
+    private MenuItem itemDeleteServer;
 
     private void dragAndDropClientServer() {
         dragAndDrop(clientView, serverView);
@@ -36,6 +42,59 @@ public class ChatController implements Initializable {
 
     private void dragAndDropServerClient() {
         dragAndDrop(serverView, clientView);
+    }
+
+    private void deleteFileServer() {
+        serverView.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+            @Override
+            public void handle(ContextMenuEvent contextMenuEvent) {
+                itemDeleteServer.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        String[] list = contextMenuEvent.getPickResult().getIntersectedNode().toString().split("\"");
+                        String fileName = list[1];
+                        try {
+                            network.write(new FileDeleteRequest(fileName));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+//                        serverView.getItems().clear();
+//                        serverView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
+                    }
+                });
+            }
+        });
+    }
+
+    private void deleteFileClient() {
+        clientView.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+            @Override
+            public void handle(ContextMenuEvent event) {
+                itemDeleteClient.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        String[] list = event.getPickResult().getIntersectedNode().toString().split("\"");
+                        String fileName = list[1];
+                        Path file = currentDir.resolve(Path.of(fileName));
+                        try {
+                            Files.delete(file);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        clientView.getItems().clear();
+                        clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
+                    }
+                });
+
+            }
+        });
+
+
+    }
+
+    private void showContextMenu(ListView<String> listView, ContextMenu contextMenu) {
+        listView.setOnContextMenuRequested(e ->
+                contextMenu.show(listView, e.getScreenX(), e.getScreenY()));
     }
 
     private void dragAndDrop(ListView<String> listView1, ListView<String> listView2) {
@@ -146,10 +205,6 @@ public class ChatController implements Initializable {
     private void readLoop() {
         try {
             while (true) {
-                dragAndDropClientServer();
-                dragAndDropServerClient();
-                isClickedOnClient();
-                isClickedOnServer();
                 CloudMessage message = network.read();
                 if (message instanceof ListFiles listFiles) {
                     Platform.runLater(() -> {
@@ -175,10 +230,26 @@ public class ChatController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
+            contextMenuClient = new ContextMenu();
+            contextMenuServer = new ContextMenu();
+            itemDeleteClient = new MenuItem("Delete");
+            itemDeleteServer = new MenuItem("Delete");
+            contextMenuClient.getItems().addAll(itemDeleteClient);
+            contextMenuServer.getItems().addAll(itemDeleteServer);
             currentDir = Path.of("client_files");
             rootDir = currentDir;
             clientView.getItems().clear();
             clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
+            serverView.setContextMenu(contextMenuServer);
+            clientView.setContextMenu(contextMenuClient);
+            showContextMenu(clientView, contextMenuClient);
+            showContextMenu(serverView, contextMenuServer);
+            deleteFileClient();
+            deleteFileServer();
+            dragAndDropClientServer();
+            dragAndDropServerClient();
+            isClickedOnClient();
+            isClickedOnServer();
             network = new Network(8189);
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);

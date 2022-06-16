@@ -4,6 +4,7 @@ import com.geekbrains.cloud.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -38,7 +39,6 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
             ListFiles list = new ListFiles(currentDir);
             list.getFiles().add(0, "..");
             ctx.writeAndFlush(list);
-            return;
         } else if(cloudMessage instanceof PathUpRequest) {
             currentDir = currentDir.getParent();
             ListFiles list = new ListFiles(currentDir);
@@ -48,7 +48,18 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
             }
             list.getFiles().add(0, "..");
             ctx.writeAndFlush(list);
-            return;
+        } else if(cloudMessage instanceof FileDeleteRequest request) {
+            String fileName = request.getName();
+            Path file = currentDir.resolve(Path.of(fileName));
+            try {
+                Files.delete(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ListFiles list = new ListFiles(currentDir);
+            if(!currentDir.equals(rootDir))
+                list.getFiles().add(0, "..");
+            ctx.writeAndFlush(list);
         }
 
     }
