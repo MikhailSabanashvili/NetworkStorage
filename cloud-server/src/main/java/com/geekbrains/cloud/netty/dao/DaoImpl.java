@@ -8,9 +8,10 @@ public class DaoImpl implements Dao{
 
     public DaoImpl() {
         try {
+            Class.forName("org.sqlite.JDBC");
             this.connection = DriverManager.getConnection("jdbc:sqlite:identifier.sqlite");
             statement = connection.createStatement();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
