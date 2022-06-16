@@ -11,9 +11,19 @@ public class ChatApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        login(stage);
+        stage.close();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("file_list.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 750, 750);
         stage.setTitle("Network Storage");
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void login(Stage stage) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("login.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 750, 750);
+        stage.setTitle("Login");
         stage.setScene(scene);
         stage.show();
     }
