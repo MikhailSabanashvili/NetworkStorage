@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.cloud.june.cloudapplication.Login">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.cloud.june.cloudapplication.LoginController">
    <children>
       <SplitPane dividerPositions="0.5133779264214047" prefHeight="400.0" prefWidth="600.0">
         <items>
@@ -17,8 +17,8 @@
                      <content>
                         <AnchorPane prefHeight="200.0" prefWidth="200.0">
                            <children>
-                              <TextField layoutY="27.0" promptText="password" />
-                              <TextField layoutY="2.0" promptText="login" />
+                              <TextField fx:id="passwordL" layoutY="27.0" promptText="password" />
+                              <TextField fx:id="loginL" layoutY="2.0" promptText="login" />
                            </children>
                         </AnchorPane>
                      </content>
@@ -31,11 +31,11 @@
                      <content>
                         <AnchorPane prefHeight="200.0" prefWidth="200.0">
                            <children>
-                              <TextField layoutY="27.0" promptText="password" />
-                              <TextField layoutY="2.0" promptText="login" />
-                              <TextField layoutY="52.0" promptText="first name" />
-                              <TextField layoutY="77.0" promptText="last name" />
-                              <TextField layoutY="102.0" promptText="email" />
+                              <TextField fx:id="passwordA" layoutY="27.0" promptText="password" />
+                              <TextField fx:id="loginA" layoutY="2.0" promptText="login" />
+                              <TextField fx:id="firstName" layoutY="52.0" promptText="first name" />
+                              <TextField fx:id="secondName" layoutY="77.0" promptText="last name" />
+                              <TextField fx:id="email" layoutY="102.0" promptText="email" />
                            </children>
                         </AnchorPane>
                      </content>
@@ -44,6 +44,6 @@
             </AnchorPane>
         </items>
       </SplitPane>
-      <TextArea layoutY="400.0" prefHeight="56.0" prefWidth="600.0" />
+      <TextArea fx:id="error" layoutY="400.0" prefHeight="56.0" prefWidth="600.0" />
    </children>
 </AnchorPane>
