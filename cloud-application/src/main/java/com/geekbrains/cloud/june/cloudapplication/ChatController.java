@@ -58,8 +58,6 @@ public class ChatController implements Initializable {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-//                        serverView.getItems().clear();
-//                        serverView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                     }
                 });
             }
