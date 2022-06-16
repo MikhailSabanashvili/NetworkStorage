@@ -17,12 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 public class CloudServer {
 
     public CloudServer() {
-
         EventLoopGroup auth = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
-
         try {
-
             ServerBootstrap server = new ServerBootstrap();
             server.group(auth, worker)
                     .channel(NioServerSocketChannel.class)
