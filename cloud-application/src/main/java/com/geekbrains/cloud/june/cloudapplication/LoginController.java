@@ -1,10 +1,13 @@
 package com.geekbrains.cloud.june.cloudapplication;
 
 import com.geekbrains.cloud.*;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -27,6 +30,10 @@ public class LoginController implements Initializable {
     TextField email;
     @FXML
     TextArea error;
+    @FXML
+    Button login;
+    @FXML
+    Button authorize;
 
     private Network network;
 
@@ -46,6 +53,8 @@ public class LoginController implements Initializable {
             e.printStackTrace();
         }
     }
+
+
 
     private void readLoop() {
         try {
@@ -76,6 +85,18 @@ public class LoginController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
+            login.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent mouseEvent) {
+                    authenticate();
+                }
+            });
+            authorize.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent mouseEvent) {
+                    authorize();
+                }
+            });
             network = new Network(8189);
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);

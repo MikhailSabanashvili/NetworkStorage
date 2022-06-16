@@ -19,7 +19,7 @@
                            <children>
                               <TextField fx:id="passwordL" layoutY="27.0" promptText="password" />
                               <TextField fx:id="loginL" layoutY="2.0" promptText="login" />
-                              <Button layoutX="106.0" layoutY="52.0" mnemonicParsing="false" text="login" />
+                              <Button fx:id="login" layoutX="106.0" layoutY="52.0" mnemonicParsing="false" text="login" />
                            </children>
                         </AnchorPane>
                      </content>
@@ -37,7 +37,7 @@
                               <TextField fx:id="firstName" layoutY="52.0" promptText="first name" />
                               <TextField fx:id="secondName" layoutY="77.0" promptText="last name" />
                               <TextField fx:id="email" layoutY="102.0" promptText="email" />
-                              <Button layoutX="83.0" layoutY="127.0" mnemonicParsing="false" text="authorize" />
+                              <Button fx:id="authorize" layoutX="83.0" layoutY="127.0" mnemonicParsing="false" text="authorize" />
                            </children>
                         </AnchorPane>
                      </content>
