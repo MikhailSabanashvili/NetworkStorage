@@ -37,7 +37,13 @@ public class LoginController implements Initializable {
     @FXML
     Button authorize;
 
-    private Network network;
+    private static Network network;
+
+    public static Network getNetwork() {
+        return network;
+    }
+
+    public static String userLogin;
 
     public void authenticate() {
         try {
@@ -64,12 +70,14 @@ public class LoginController implements Initializable {
                     if(!response.isAuth())
                         error.setText("You are not registered. Please, log in");
                     else {
+                        userLogin = response.getLogin();
                         break;
                     }
                 } else if(message instanceof AuthorizeResponse response) {
                     if(!response.isSuccess())
-                        error.setText("Something went wrong. Please, log in again");
+                        error.setText("You are not registered. Please, log in");
                     else {
+                        userLogin = response.getLogin();
                         break;
                     }
                 }
@@ -103,6 +111,7 @@ public class LoginController implements Initializable {
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

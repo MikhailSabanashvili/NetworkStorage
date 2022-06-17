@@ -39,4 +39,16 @@ public class DaoImpl implements Dao{
         }
         return false;
     }
+
+    @Override
+    public String getId(String login) {
+        try {
+            ResultSet resultSet = statement.executeQuery(String.format("SELECT id FROM users WHERE login='%s'", login));
+            return resultSet.getString("id");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("Спорим, тебе не понравится, если ты это увидишь? Потому что я не знаю что случилось");
+    }
 }
