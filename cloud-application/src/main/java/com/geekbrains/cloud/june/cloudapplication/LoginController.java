@@ -89,7 +89,6 @@ public class LoginController implements Initializable {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("file_list.fxml"));
             Parent root = fxmlLoader.load();
             CloudApplicationClient.scene.setRoot(root);
-            CloudApplicationClient.stage.close();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
