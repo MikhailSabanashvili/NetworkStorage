@@ -1,6 +1,7 @@
-package com.geekbrains.cloud.june.cloudapplication;
+package com.geekbrains.cloud.june.cloudapplication.controller;
 
 import com.geekbrains.cloud.*;
+import com.geekbrains.cloud.june.cloudapplication.network.Network;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;

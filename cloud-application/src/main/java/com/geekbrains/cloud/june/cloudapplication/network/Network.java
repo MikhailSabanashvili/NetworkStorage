@@ -1,4 +1,4 @@
-package com.geekbrains.cloud.june.cloudapplication;
+package com.geekbrains.cloud.june.cloudapplication.network;
 
 import com.geekbrains.cloud.CloudMessage;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
