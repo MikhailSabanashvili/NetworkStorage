@@ -64,22 +64,17 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
                     request.getSecondName(), request.getEmail());
             userService.authorize(user);
             if(userService.isAuth(user.getLogin(), user.getPassword()))
-                ctx.writeAndFlush(new AuthResponse(true, user.getLogin()));
-            else
-                ctx.writeAndFlush(new AuthResponse(false, user.getLogin()));
-        } else if(cloudMessage instanceof AuthRequest request) {
-            if(userService.isAuth(request.getLogin(), request.getPassword())) {
                 ctx.writeAndFlush(new AuthorizeResponse(true, request.getLogin()));
-            }
             else
                 ctx.writeAndFlush(new AuthorizeResponse(false, request.getLogin()));
+        } else if(cloudMessage instanceof AuthRequest request) {
+            if(userService.isAuth(request.getLogin(), request.getPassword())) {
+                ctx.writeAndFlush(new AuthResponse(true, request.getLogin()));
+            }
+            else
+                ctx.writeAndFlush(new AuthResponse(false, request.getLogin()));
         } else if(cloudMessage instanceof  ListFilesRequest request) {
             ListFiles list = new ListFiles(UserService.getLoginDir().get(request.getLogin()));
-            ctx.writeAndFlush(list);
-        } else if(cloudMessage instanceof RequestPath path) {
-            ctx.writeAndFlush(new ResponsePath(UserService.getLoginDir().get(path.getLogin())));
-        } else if(cloudMessage instanceof LoginResponse response) {
-            ListFiles list = new ListFiles(UserService.getLoginDir().get(response.getLogin()));
             ctx.writeAndFlush(list);
         }
 

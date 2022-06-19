@@ -7,7 +7,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class ChatApplication extends Application {
+public class CloudApplicationClient extends Application {
     public static Scene scene;
     public static Stage stage;
 
@@ -15,8 +15,8 @@ public class ChatApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("login.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 550);
-        ChatApplication.scene = scene;
-        ChatApplication.stage = stage;
+        CloudApplicationClient.scene = scene;
+        CloudApplicationClient.stage = stage;
         stage.setTitle("Login");
         stage.setScene(scene);
         stage.show();

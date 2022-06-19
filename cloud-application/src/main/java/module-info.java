@@ -6,4 +6,8 @@ module com.geekbrains.cloud.june.cloudapplication {
 
     opens com.geekbrains.cloud.june.cloudapplication to javafx.fxml;
     exports com.geekbrains.cloud.june.cloudapplication;
+    exports com.geekbrains.cloud.june.cloudapplication.controller;
+    opens com.geekbrains.cloud.june.cloudapplication.controller to javafx.fxml;
+    exports com.geekbrains.cloud.june.cloudapplication.network;
+    opens com.geekbrains.cloud.june.cloudapplication.network to javafx.fxml;
 }

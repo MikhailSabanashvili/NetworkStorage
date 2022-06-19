@@ -1,6 +1,8 @@
-package com.geekbrains.cloud.june.cloudapplication;
+package com.geekbrains.cloud.june.cloudapplication.controller;
 
 import com.geekbrains.cloud.*;
+import com.geekbrains.cloud.june.cloudapplication.CloudApplicationClient;
+import com.geekbrains.cloud.june.cloudapplication.network.Network;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -38,12 +40,15 @@ public class LoginController implements Initializable {
     Button authorize;
 
     private static Network network;
+    private static String userLogin;
 
     public static Network getNetwork() {
         return network;
     }
 
-    public static String userLogin;
+    public static String getUserLogin() {
+        return userLogin;
+    }
 
     public void authenticate() {
         try {
@@ -75,7 +80,7 @@ public class LoginController implements Initializable {
                     }
                 } else if(message instanceof AuthorizeResponse response) {
                     if(!response.isSuccess())
-                        error.setText("You are not registered. Please, log in");
+                        error.setText("Something went wrong");
                     else {
                         userLogin = response.getLogin();
                         break;
@@ -85,8 +90,7 @@ public class LoginController implements Initializable {
             }
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("file_list.fxml"));
             Parent root = fxmlLoader.load();
-            ChatApplication.scene.setRoot(root);
-            ChatApplication.stage.close();
+            CloudApplicationClient.scene.setRoot(root);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

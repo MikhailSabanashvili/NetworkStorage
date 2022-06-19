@@ -1,6 +1,7 @@
-package com.geekbrains.cloud.june.cloudapplication;
+package com.geekbrains.cloud.june.cloudapplication.controller;
 
 import com.geekbrains.cloud.*;
+import com.geekbrains.cloud.june.cloudapplication.network.Network;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -19,7 +20,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ChatController implements Initializable {
+public class MainController implements Initializable {
 
 
     @FXML
@@ -55,7 +56,7 @@ public class ChatController implements Initializable {
                         String[] list = contextMenuEvent.getPickResult().getIntersectedNode().toString().split("\"");
                         String fileName = list[1];
                         try {
-                            network.write(new FileDeleteRequest(fileName, LoginController.userLogin));
+                            network.write(new FileDeleteRequest(fileName, LoginController.getUserLogin()));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -139,7 +140,7 @@ public class ChatController implements Initializable {
 
     private void transferTo(String file) {
         try {
-            network.write(new FileMessage(currentDir.resolve(file), LoginController.userLogin));
+            network.write(new FileMessage(currentDir.resolve(file), LoginController.getUserLogin()));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -147,7 +148,7 @@ public class ChatController implements Initializable {
 
     private void transferFrom(String file) {
         try {
-            network.write(new FileRequest(false, file, LoginController.userLogin));
+            network.write(new FileRequest(false, file, LoginController.getUserLogin()));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -172,7 +173,7 @@ public class ChatController implements Initializable {
                             listView.getItems().clear();
                             if(isServer) {
                                 try {
-                                    network.write(new PathUpRequest("..", LoginController.userLogin));
+                                    network.write(new PathUpRequest("..", LoginController.getUserLogin()));
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -185,7 +186,7 @@ public class ChatController implements Initializable {
                         }
                         if(isServer) {
                             try {
-                                network.write(new PathInRequest(fileName, LoginController.userLogin));
+                                network.write(new PathInRequest(fileName, LoginController.getUserLogin()));
                                 return;
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -218,8 +219,6 @@ public class ChatController implements Initializable {
                             clientView.getItems().clear();
                             clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                         });
-                    } else if(message instanceof LoginRequest) {
-                        network.write(new LoginResponse(LoginController.userLogin));
                     }
                 }
             } catch(IOException | ClassNotFoundException e){
@@ -264,7 +263,7 @@ public class ChatController implements Initializable {
 
                         }
                         Thread.sleep(1000);
-                        network.write(new ListFilesRequest(LoginController.userLogin));
+                        network.write(new ListFilesRequest(LoginController.getUserLogin()));
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
