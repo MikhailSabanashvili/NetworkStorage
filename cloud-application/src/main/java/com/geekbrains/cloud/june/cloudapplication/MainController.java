@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ChatController implements Initializable {
+public class MainController implements Initializable {
 
 
     @FXML

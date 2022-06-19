@@ -8,7 +8,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="620.0"
             prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.geekbrains.cloud.june.cloudapplication.ChatController">
+            fx:controller="com.geekbrains.cloud.june.cloudapplication.MainController">
     <SplitPane dividerPositions="0.5" layoutX="187.0" layoutY="192.0" prefHeight="620.0" prefWidth="600.0"
                AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                AnchorPane.topAnchor="0.0">
