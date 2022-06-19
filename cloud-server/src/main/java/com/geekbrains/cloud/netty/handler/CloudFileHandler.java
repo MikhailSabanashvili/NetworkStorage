@@ -76,11 +76,6 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
         } else if(cloudMessage instanceof  ListFilesRequest request) {
             ListFiles list = new ListFiles(UserService.getLoginDir().get(request.getLogin()));
             ctx.writeAndFlush(list);
-        } else if(cloudMessage instanceof RequestPath path) {
-            ctx.writeAndFlush(new ResponsePath(UserService.getLoginDir().get(path.getLogin())));
-        } else if(cloudMessage instanceof LoginResponse response) {
-            ListFiles list = new ListFiles(UserService.getLoginDir().get(response.getLogin()));
-            ctx.writeAndFlush(list);
         }
 
     }

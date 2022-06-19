@@ -218,8 +218,6 @@ public class MainController implements Initializable {
                             clientView.getItems().clear();
                             clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                         });
-                    } else if(message instanceof LoginRequest) {
-                        network.write(new LoginResponse(LoginController.userLogin));
                     }
                 }
             } catch(IOException | ClassNotFoundException e){
