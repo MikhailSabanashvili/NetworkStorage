@@ -35,6 +35,7 @@ public class ChatController implements Initializable {
     private ContextMenu contextMenuServer;
     private MenuItem itemDeleteClient;
     private MenuItem itemDeleteServer;
+    private boolean isLaunch = true;
 
     private void dragAndDropClientServer() {
         dragAndDrop(clientView, serverView);
@@ -54,12 +55,10 @@ public class ChatController implements Initializable {
                         String[] list = contextMenuEvent.getPickResult().getIntersectedNode().toString().split("\"");
                         String fileName = list[1];
                         try {
-                            network.write(new FileDeleteRequest(fileName));
+                            network.write(new FileDeleteRequest(fileName, LoginController.userLogin));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-//                        serverView.getItems().clear();
-//                        serverView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
                     }
                 });
             }
@@ -140,7 +139,7 @@ public class ChatController implements Initializable {
 
     private void transferTo(String file) {
         try {
-            network.write(new FileMessage(currentDir.resolve(file)));
+            network.write(new FileMessage(currentDir.resolve(file), LoginController.userLogin));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -148,7 +147,7 @@ public class ChatController implements Initializable {
 
     private void transferFrom(String file) {
         try {
-            network.write(new FileRequest(false, file));
+            network.write(new FileRequest(false, file, LoginController.userLogin));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -173,7 +172,7 @@ public class ChatController implements Initializable {
                             listView.getItems().clear();
                             if(isServer) {
                                 try {
-                                    network.write(new PathUpRequest(".."));
+                                    network.write(new PathUpRequest("..", LoginController.userLogin));
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -186,7 +185,7 @@ public class ChatController implements Initializable {
                         }
                         if(isServer) {
                             try {
-                                network.write(new PathInRequest(fileName));
+                                network.write(new PathInRequest(fileName, LoginController.userLogin));
                                 return;
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -204,26 +203,29 @@ public class ChatController implements Initializable {
 
     private void readLoop() {
         try {
-            while (true) {
-                CloudMessage message = network.read();
-                if (message instanceof ListFiles listFiles) {
-                    Platform.runLater(() -> {
-                        serverView.getItems().clear();
-                        serverView.getItems().addAll(listFiles.getFiles());
-                    });
-                } else if (message instanceof FileMessage fileMessage) {
-                    Path current = currentDir.resolve(fileMessage.getName());
-                    Files.write(current, fileMessage.getData());
-                    Platform.runLater(() -> {
-                        clientView.getItems().clear();
-                        clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
-                    });
+                while (true) {
+                    isLaunch = false;
+                    CloudMessage message = network.read();
+                    if (message instanceof ListFiles listFiles) {
+                        Platform.runLater(() -> {
+                            serverView.getItems().clear();
+                            serverView.getItems().addAll(listFiles.getFiles());
+                        });
+                    } else if (message instanceof FileMessage fileMessage) {
+                        Path current = currentDir.resolve(fileMessage.getName());
+                        Files.write(current, fileMessage.getData());
+                        Platform.runLater(() -> {
+                            clientView.getItems().clear();
+                            clientView.getItems().addAll(getFiles(currentDir, currentDir.equals(rootDir)));
+                        });
+                    } else if(message instanceof LoginRequest) {
+                        network.write(new LoginResponse(LoginController.userLogin));
+                    }
                 }
+            } catch(IOException | ClassNotFoundException e){
+                e.printStackTrace();
             }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
-    }
 
 
 
@@ -250,11 +252,25 @@ public class ChatController implements Initializable {
             dragAndDropServerClient();
             isClickedOnClient();
             isClickedOnServer();
-            network = new Network(8189);
+            network = LoginController.getNetwork();
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while(isLaunch) {
 
+                        }
+                        Thread.sleep(1000);
+                        network.write(new ListFilesRequest(LoginController.userLogin));
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }

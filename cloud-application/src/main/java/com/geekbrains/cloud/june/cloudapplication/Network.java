@@ -4,22 +4,12 @@ import com.geekbrains.cloud.CloudMessage;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
 public class Network {
 
     private ObjectDecoderInputStream is;
-
-    public ObjectDecoderInputStream getIs() {
-        return is;
-    }
-
-    public ObjectEncoderOutputStream getOs() {
-        return os;
-    }
 
     private ObjectEncoderOutputStream os;
 
@@ -29,10 +19,6 @@ public class Network {
         is = new ObjectDecoderInputStream(socket.getInputStream());
     }
 
-    public String readString() throws IOException {
-        return is.readUTF();
-    }
-
     public CloudMessage read() throws IOException, ClassNotFoundException {
         return (CloudMessage) is.readObject();
     }
@@ -40,18 +26,5 @@ public class Network {
     public void write(CloudMessage msg) throws IOException {
         os.writeObject(msg);
         os.flush();
-    }
-
-    public int readInt() throws IOException {
-        return is.readInt();
-    }
-
-    public void writeMessage(String message) throws IOException {
-        os.writeUTF(message);
-        os.flush();
-    }
-
-    public String readMessage() throws IOException {
-        return readString();
     }
 }
