@@ -55,7 +55,7 @@ public class MainController implements Initializable {
                         String[] list = contextMenuEvent.getPickResult().getIntersectedNode().toString().split("\"");
                         String fileName = list[1];
                         try {
-                            network.write(new FileDeleteRequest(fileName, LoginController.userLogin));
+                            network.write(new FileDeleteRequest(fileName, LoginController.getUserLogin()));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -139,7 +139,7 @@ public class MainController implements Initializable {
 
     private void transferTo(String file) {
         try {
-            network.write(new FileMessage(currentDir.resolve(file), LoginController.userLogin));
+            network.write(new FileMessage(currentDir.resolve(file), LoginController.getUserLogin()));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -147,7 +147,7 @@ public class MainController implements Initializable {
 
     private void transferFrom(String file) {
         try {
-            network.write(new FileRequest(false, file, LoginController.userLogin));
+            network.write(new FileRequest(false, file, LoginController.getUserLogin()));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -172,7 +172,7 @@ public class MainController implements Initializable {
                             listView.getItems().clear();
                             if(isServer) {
                                 try {
-                                    network.write(new PathUpRequest("..", LoginController.userLogin));
+                                    network.write(new PathUpRequest("..", LoginController.getUserLogin()));
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -185,7 +185,7 @@ public class MainController implements Initializable {
                         }
                         if(isServer) {
                             try {
-                                network.write(new PathInRequest(fileName, LoginController.userLogin));
+                                network.write(new PathInRequest(fileName, LoginController.getUserLogin()));
                                 return;
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -262,7 +262,7 @@ public class MainController implements Initializable {
 
                         }
                         Thread.sleep(1000);
-                        network.write(new ListFilesRequest(LoginController.userLogin));
+                        network.write(new ListFilesRequest(LoginController.getUserLogin()));
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }

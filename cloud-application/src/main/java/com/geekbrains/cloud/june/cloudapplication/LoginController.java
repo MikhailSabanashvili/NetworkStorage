@@ -38,12 +38,15 @@ public class LoginController implements Initializable {
     Button authorize;
 
     private static Network network;
+    private static String userLogin;
 
     public static Network getNetwork() {
         return network;
     }
 
-    public static String userLogin;
+    public static String getUserLogin() {
+        return userLogin;
+    }
 
     public void authenticate() {
         try {
@@ -75,7 +78,7 @@ public class LoginController implements Initializable {
                     }
                 } else if(message instanceof AuthorizeResponse response) {
                     if(!response.isSuccess())
-                        error.setText("You are not registered. Please, log in");
+                        error.setText("Something went wrong");
                     else {
                         userLogin = response.getLogin();
                         break;
