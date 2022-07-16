@@ -1,12 +1,16 @@
 package com.geekbrains.cloud.netty.dao;
 
+import lombok.Getter;
+
 import java.sql.*;
 
 public class DaoImpl implements Dao{
     private Connection connection;
     private Statement statement;
+    @Getter
+    private static DaoImpl dao = new DaoImpl();
 
-    public DaoImpl() {
+    private DaoImpl() {
         try {
             Class.forName("org.sqlite.JDBC");
             this.connection = DriverManager.getConnection("jdbc:sqlite:identifier.sqlite");
@@ -28,19 +32,6 @@ public class DaoImpl implements Dao{
     }
 
     @Override
-    public boolean isExist(String login, String password) {
-        try {
-            ResultSet resultSet = statement.executeQuery(String.format("SELECT login, password FROM users WHERE login='%s' and password='%s'",
-                    login, password));
-            if(resultSet.getString("login") != null && resultSet.getString("password") != null)
-                return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @Override
     public String getId(String login) {
         try {
             ResultSet resultSet = statement.executeQuery(String.format("SELECT id FROM users WHERE login='%s'", login));
@@ -49,6 +40,23 @@ public class DaoImpl implements Dao{
             e.printStackTrace();
         }
 
-        throw new RuntimeException("Спорим, тебе не понравится, если ты это увидишь? Потому что я не знаю что случилось");
+        throw new RuntimeException("Cant return id from database");
+    }
+
+    @Override
+    public User getUser(String login) {
+        try {
+            ResultSet resultSet = statement.executeQuery(String.format("SELECT login, password, first_name, second_name," +
+                    " email FROM users WHERE login='%s'", login));
+            return new User(resultSet.getString("login"),
+                    resultSet.getString("password"),
+                    resultSet.getString("first_name"),
+                    resultSet.getString("second_name"),
+                    resultSet.getString("email"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

@@ -40,14 +40,9 @@ public class LoginController implements Initializable {
     Button authorize;
 
     private static Network network;
-    private static String userLogin;
 
     public static Network getNetwork() {
         return network;
-    }
-
-    public static String getUserLogin() {
-        return userLogin;
     }
 
     public void authenticate() {
@@ -75,14 +70,12 @@ public class LoginController implements Initializable {
                     if(!response.isAuth())
                         error.setText("You are not registered. Please, log in");
                     else {
-                        userLogin = response.getLogin();
                         break;
                     }
                 } else if(message instanceof AuthorizeResponse response) {
                     if(!response.isSuccess())
                         error.setText("Something went wrong");
                     else {
-                        userLogin = response.getLogin();
                         break;
                     }
                 }
